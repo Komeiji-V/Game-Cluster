@@ -7,6 +7,7 @@ let longPressTrackMouse = false;
 let meritComplete = false, submitting = false;
 let audio = null;
 let mouseX = 0, mouseY = 0;
+let clickHistory = [];
 let autoMode = false, autoSpeed = 500, autoModeInterval = null;
 let spaceHeld = false;
 const SPEED_OPTIONS = [500, 750, 1000, 1500, 2000];
@@ -120,6 +121,8 @@ function onHit(e) {
     if (combo > maxCombo) maxCombo = combo;
     lastClickTime = now;
     totalClicks++;
+    clickHistory.push(Date.now());
+    if (clickHistory.length > 20) clickHistory.shift();
 
     if (!meritComplete) {
         if (!gameStarted) { gameStarted = true; submitBtn.style.display = 'inline-block'; }
@@ -206,9 +209,9 @@ function changeSpeed(v) {
 function updateHUD() {
     if (!hud) return;
     var bpm = 0;
-    if (totalClicks > 1 && lastClickTime > 0) {
-        var d = (Date.now() - (lastClickTime - COMBO_WINDOW)) / 1000;
-        if (d > 0) bpm = Math.round((totalClicks / d) * 60);
+    if (clickHistory.length >= 2) {
+        var span = (clickHistory[clickHistory.length - 1] - clickHistory[0]) / 1000;
+        if (span > 0) bpm = Math.round((clickHistory.length / span) * 60);
     }
     if (meritComplete) {
         hud.innerHTML = '<span style="color:#ffd700;font-weight:900;">🌟 功德圆满 🌟</span>'
