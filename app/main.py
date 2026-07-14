@@ -1,7 +1,6 @@
 ﻿from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from jinja2 import ChoiceLoader, FileSystemLoader
 from sqlalchemy import select
 from contextlib import asynccontextmanager
 import os
@@ -11,10 +10,6 @@ from app.models import Base
 from app.models.site_settings import SiteSettings
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
-templates.env.loader = ChoiceLoader([
-    FileSystemLoader(TEMPLATES_DIR),
-    FileSystemLoader(GAMES_DIR),
-])
 
 
 async def load_site_settings() -> dict:

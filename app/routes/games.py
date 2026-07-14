@@ -3,8 +3,9 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import select, func, desc
 import json
+import os
 
-from app.config import AsyncSessionLocal
+from app.config import AsyncSessionLocal, GAMES_DIR
 from app.models.score import Score
 from app.models.site_settings import GameModule
 from app.models.user import User
@@ -103,6 +104,12 @@ async def play_game(request: Request, game_id: str):
 
     game_template_path = f"{game_id}/template.html"
 
+    game_html = ""
+    tmpl_path = os.path.join(GAMES_DIR, game_template_path)
+    if os.path.exists(tmpl_path):
+        with open(tmpl_path, "r", encoding="utf-8-sig") as f:
+            game_html = f.read()
+
     my_score = None
     my_rank = None
     if user:
@@ -145,7 +152,7 @@ async def play_game(request: Request, game_id: str):
         "request": request,
         "user": user,
         "game": info,
-        "game_template_path": game_template_path,
+        "game_html": game_html,
         "leaderboard": leaderboard,
         "my_score": my_score,
         "my_rank": my_rank,
