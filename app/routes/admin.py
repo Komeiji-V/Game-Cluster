@@ -4,7 +4,7 @@ import shutil
 import zipfile
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 
 from app.config import AsyncSessionLocal, GAMES_DIR, UPLOADS_DIR
 from app.models.user import User
@@ -210,6 +210,7 @@ async def admin_games_delete(game_id: str, admin: User = Depends(require_admin))
         result = await db.execute(select(GameModule).where(GameModule.game_id == game_id))
         module = result.scalar_one_or_none()
         if module:
+            await db.execute(delete(Score).where(Score.game_id == game_id))
             await db.delete(module)
             await db.commit()
 
