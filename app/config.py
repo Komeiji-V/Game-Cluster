@@ -1,4 +1,4 @@
-﻿import os
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 _DB_URL = os.getenv("DATABASE_URL", "")

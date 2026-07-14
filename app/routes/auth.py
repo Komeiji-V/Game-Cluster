@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse
 import re
 
@@ -22,6 +22,7 @@ MSG_USERNAME_TAKEN = "用户名已被占用"
 MSG_EMAIL_TAKEN = "邮箱已注册"
 MSG_REG_OK = "注册成功！请检查邮箱完成验证。"
 MSG_REG_SKIP = "注册成功！（SMTP 未配置，已跳过邮箱验证）"
+MSG_SMTP_FAIL = "注册成功，但邮件发送失败，请通知管理员检查 SMTP 配置"
 MSG_VERIFY_FAIL = "验证链接无效或已过期"
 MSG_VERIFY_OK = '邮箱验证成功！现在可以<a href="/login">登录</a>了。'
 MSG_VERIFY_DUP = "验证失败，可能已经验证过了。"
@@ -102,13 +103,19 @@ async def register(
     verify_token_str = create_access_token({"sub": str(user.id), "scope": "verify"})
     base_url = str(request.base_url).rstrip("/")
     verify_url = f"{base_url}/auth/verify?token={verify_token_str}"
-    sent = await send_verification_email(email, username, verify_url)
 
-    if sent:
-        msg = MSG_REG_OK
-    else:
+    from app.services.email_service import _get_smtp_config
+    smtp_config = await _get_smtp_config()
+    if not smtp_config.get("host"):
         await verify_user(user.id)
         msg = MSG_REG_SKIP
+    else:
+        sent = await send_verification_email(email, username, verify_url)
+        if sent:
+            msg = MSG_REG_OK
+        else:
+            await verify_user(user.id)
+            msg = MSG_SMTP_FAIL
 
     return templates.TemplateResponse("auth/register.html", {
         "request": request,

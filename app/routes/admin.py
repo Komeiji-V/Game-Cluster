@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import shutil
 import zipfile
@@ -108,6 +108,47 @@ async def admin_smtp_save(
     })
 
 
+@router.post("/smtp/test")
+async def admin_smtp_test(request: Request, admin: User = Depends(require_admin)):
+    form = await request.form()
+    config = {
+        "host": form.get("smtp_host", ""),
+        "port": int(form.get("smtp_port", "587")),
+        "username": form.get("smtp_username", ""),
+        "password": form.get("smtp_password", ""),
+        "from_email": form.get("smtp_from_email", ""),
+        "from_name": form.get("smtp_from_name", "小游戏集群"),
+        "use_tls": form.get("smtp_use_tls", "true").lower() == "true",
+    }
+    to_email = form.get("test_to_email", "").strip()
+
+    if not config["host"]:
+        return {"success": False, "error": "SMTP 主机地址未配置"}
+    if not to_email or "@" not in to_email:
+        return {"success": False, "error": "请输入有效的收件邮箱"}
+
+    import asyncio
+    from app.services.email_service import _send_sync
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from email.utils import formataddr
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = formataddr((config["from_name"], config["from_email"]))
+    msg["To"] = to_email
+    msg["Subject"] = "SMTP 测试邮件 - 小游戏集群"
+    msg.attach(MIMEText("这是一封来自小游戏集群的 SMTP 测试邮件。\n\n如果您收到此邮件，说明 SMTP 配置正确。", "plain", "utf-8"))
+
+    try:
+        result = await asyncio.to_thread(_send_sync, msg, config)
+        if result:
+            return {"success": True, "msg": f"测试邮件已发送到 {to_email}"}
+        else:
+            return {"success": False, "error": "发送失败，请检查 SMTP 配置"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @router.get("/games", response_class=HTMLResponse)
 async def admin_games(request: Request, admin: User = Depends(require_admin)):
     from app.main import templates
@@ -128,7 +169,7 @@ async def admin_games_upload(
     file: UploadFile = File(...),
 ):
     if not file.filename or not file.filename.endswith(".zip"):
-            raise HTTPException(status_code=400, detail="仅支持 .zip 文件")
+        raise HTTPException(status_code=400, detail="仅支持 .zip 文件")
 
     temp_dir = os.path.join(GAMES_DIR, "_upload_temp")
     os.makedirs(temp_dir, exist_ok=True)

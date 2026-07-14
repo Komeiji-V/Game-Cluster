@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select, func, desc
 
@@ -142,7 +142,8 @@ async def total_ranking_html(request: Request, user_id: int):
             for row in rows:
                 if row.setting_key == "site_title" and row.value: site_name = row.value
                 elif row.setting_key == "site_base_url" and row.value: site_base_url = row.value.rstrip("/")
-    except: pass
+    except Exception:
+        pass
 
     return templates.TemplateResponse("widgets/total_card.html", {
         "request": request, "player": {"username": data["username"]},

@@ -2,7 +2,7 @@
 {% block admin_content %}
 <h4 class="fw-bold mb-4">SMTP 邮件设置</h4>
 {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
-<form method="post">
+<form method="post" id="smtp-form">
     <div class="row g-3">
         <div class="col-md-6"><label class="form-label">主机地址</label><input type="text" name="smtp_host" class="form-control" value="{{ config.get('smtp_host', '') }}"></div>
         <div class="col-md-2"><label class="form-label">端口</label><input type="number" name="smtp_port" class="form-control" value="{{ config.get('smtp_port', '587') }}"></div>
@@ -14,4 +14,45 @@
     </div>
     <button type="submit" class="btn btn-primary mt-3">保存设置</button>
 </form>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h6 class="fw-bold mb-3">发送测试邮件</h6>
+        <div class="mb-3">
+            <label class="form-label">收件邮箱</label>
+            <input type="email" id="test_to_email" class="form-control" placeholder="输入接收测试邮件的邮箱地址">
+        </div>
+        <button class="btn btn-primary" id="btn-send-test" onclick="sendTestEmail()">发送测试邮件</button>
+        <div id="test-result" class="mt-2" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+async function sendTestEmail() {
+    var email = document.getElementById('test_to_email').value.trim();
+    if (!email) { alert('请输入收件邮箱'); return; }
+
+    var form = document.getElementById('smtp-form');
+    var fd = new FormData(form);
+    fd.set('test_to_email', email);
+
+    var btn = document.getElementById('btn-send-test');
+    var result = document.getElementById('test-result');
+    btn.disabled = true; btn.textContent = '发送中...';
+    result.style.display = 'none';
+
+    try {
+        var resp = await fetch('/admin/smtp/test', { method: 'POST', body: fd });
+        var data = await resp.json();
+        result.style.display = 'block';
+        result.className = data.success ? 'alert alert-success mt-2' : 'alert alert-danger mt-2';
+        result.textContent = data.success ? data.msg : '发送失败：' + data.error;
+    } catch(e) {
+        result.style.display = 'block';
+        result.className = 'alert alert-danger mt-2';
+        result.textContent = '网络错误，请检查服务器状态';
+    }
+    btn.disabled = false; btn.textContent = '发送测试邮件';
+}
+</script>
 {% endblock %}

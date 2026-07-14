@@ -1,4 +1,4 @@
-﻿import json
+import json
 import redis.asyncio as aioredis
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy import select, desc

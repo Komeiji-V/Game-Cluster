@@ -79,7 +79,7 @@ docker compose up -d
 docker compose exec app python mkadmin.py
 ```
 
-默认账号 `admin` / `admin123`，登录后请立即修改密码。
+脚本会交互式询问用户名、邮箱和密码。第一个创建的用户自动获得管理员权限。登录后请立即进入 `/profile` 修改初始密码。
 
 ---
 
