@@ -10,8 +10,6 @@ from app.models import Base
 from app.models.site_settings import SiteSettings
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
-templates.env.cache = None
-templates.env.auto_reload = True
 
 
 async def load_site_settings() -> dict:
@@ -37,8 +35,6 @@ async def lifespan(application: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     from app.services.game_loader import scan_game_modules
     await scan_game_modules()
-    settings = await load_site_settings()
-    templates.env.globals["config"] = settings
     yield
     await engine.dispose()
 
@@ -55,7 +51,7 @@ if os.path.exists(games_static):
 @app.middleware("http")
 async def site_settings_middleware(request: Request, call_next):
     settings = await load_site_settings()
-    templates.env.globals["config"] = settings
+    request.state.site_config = settings
     response = await call_next(request)
     return response
 
