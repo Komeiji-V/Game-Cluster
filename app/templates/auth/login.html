@@ -1,0 +1,19 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="container py-5" style="max-width: 440px;">
+    <h3 class="text-center mb-4 fw-bold">登录</h3>
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">用户名 / 邮箱</label>
+            <input type="text" name="username" class="form-control" placeholder="输入用户名或邮箱" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">密码</label>
+            <input type="password" name="password" class="form-control" placeholder="输入密码" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 btn-lg">登录</button>
+    </form>
+    <p class="text-center mt-3 text-muted">没有账号？<a href="/register">立即注册</a></p>
+</div>
+{% endblock %}

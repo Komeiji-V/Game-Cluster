@@ -1,0 +1,43 @@
+﻿{% extends "admin/base.html" %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4">游戏管理</h4>
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="mb-3 fw-bold">上传新游戏</h6>
+        <form action="/admin/games/upload" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+            <input type="file" name="file" accept=".zip" class="form-control" required>
+            <button type="submit" class="btn btn-primary">上传</button>
+        </form>
+        <small class="text-muted">上传包含 manifest.json、template.html 和 static/game.js 的 .zip 压缩包</small>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr><th>游戏 ID</th><th>名称</th><th>版本</th><th>作者</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+                {% for m in modules %}
+                <tr>
+                    <td><code>{{ m.game_id }}</code></td>
+                    <td>{{ m.name }}</td>
+                    <td>v{{ m.version }}</td>
+                    <td>{{ m.author }}</td>
+                    <td>{% if m.enabled %}<span class="badge bg-success">已启用</span>{% else %}<span class="badge bg-secondary">已禁用</span>{% endif %}</td>
+                    <td>
+                        <form action="/admin/games/{{ m.game_id }}/toggle" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-outline-secondary">{{ '禁用' if m.enabled else '启用' }}</button>
+                        </form>
+                        <form action="/admin/games/{{ m.game_id }}/delete" method="post" class="d-inline" onsubmit="return confirm('确定删除这个游戏吗？')">
+                            <button class="btn btn-sm btn-outline-danger">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not modules %}
+                <tr><td colspan="6" class="text-center text-muted py-4">暂无已安装的游戏</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

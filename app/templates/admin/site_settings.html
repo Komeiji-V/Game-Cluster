@@ -1,0 +1,44 @@
+﻿{% extends "admin/base.html" %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4">站点设置</h4>
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">基本信息</h6>
+                <form method="post" action="/admin/settings">
+                    <div class="mb-3"><label class="form-label">站点标题</label><input type="text" name="site_title" class="form-control" value="{{ config.get('site_title', '') }}"></div>
+                    <div class="mb-3"><label class="form-label">副标题</label><input type="text" name="site_subtitle" class="form-control" value="{{ config.get('site_subtitle', '') }}"></div>
+                    <div class="mb-3"><label class="form-label">主题色</label><input type="color" name="site_primary_color" value="{{ config.get('site_primary_color', '#f97316') }}" style="width:44px;height:38px;border:none;border-radius:6px;cursor:pointer;"></div>
+                    <div class="mb-3"><label class="form-label">站点域名（用于 Widget URL）</label><input type="text" name="site_base_url" class="form-control" placeholder="例如 https://games.example.com" value="{{ config.get('site_base_url', '') }}"></div>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">网站图标</h6>
+                <form action="/admin/settings/upload" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="type" value="favicon">
+                    <input type="file" name="file" accept="image/*" class="form-control mb-2">
+                    {% if config.get('site_favicon') %}<img src="{{ config['site_favicon'] }}" style="width:32px;height:32px;"> <code class="ms-1">{{ config['site_favicon'] }}</code>{% endif %}
+                    <button type="submit" class="btn btn-primary d-block mt-2">上传图标</button>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">背景壁纸</h6>
+                <form action="/admin/settings/upload" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="type" value="wallpaper">
+                    <input type="file" name="file" accept="image/*" class="form-control mb-2">
+                    {% if config.get('site_wallpaper') %}<code>{{ config['site_wallpaper'] }}</code>{% endif %}
+                    <button type="submit" class="btn btn-primary d-block mt-2">上传壁纸</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold">{{ game.get('name', '') }}</h4>
+            <p class="text-muted mb-0 small">{{ game.get('description', '') }}</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-secondary">v{{ game.get('version', '1.0') }}</span>
+            <span class="badge bg-info">{{ game.get('author', '') }}</span>
+            {% if not user %}
+            <span class="badge bg-warning">游客模式</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div id="game-container" style="width:100%;min-height:500px;display:flex;align-items:center;justify-content:center;">
+                {% include game_template_path ignore missing %}
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-2">
+        <small class="text-muted">
+            分数 Widget：<code>{{ config.get('site_base_url', '') }}/api/widget/{{ game.get('game_id', '') }}/{{ user.id if user else '用户ID' }}</code>
+        </small>
+    </div>
+
+    {% if leaderboard %}
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0" style="color:var(--txt-3);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;">{{ game.get('name','') }} 排行榜</h6>
+            <a href="/leaderboard?game_id={{ game.get('game_id','') }}" style="font-size:.75rem;">查看完整排行榜 &rarr;</a>
+        </div>
+
+        {% if user and my_score is not none %}
+        <div class="card mb-2" style="background:var(--acc-glow);border-color:var(--acc);">
+            <div class="card-body py-2 px-3" style="font-size:.85rem;">
+                我的分数：<b style="color:var(--acc);">{{ my_score }}</b>
+                {% if my_rank %}&nbsp;|&nbsp; 排名：<b style="color:var(--acc);">#{{ my_rank }}</b> / {{ total_players }}{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card" id="game-lb-card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0" id="game-lb-table">
+                    <thead><tr><th style="width:55px;">排名</th><th>玩家</th><th style="text-align:right;">分数</th></tr></thead>
+                    <tbody>
+                        {% for row in leaderboard %}
+                        <tr>
+                            <td class="fw-bold">{% if row.rank==1 %}&#129351;{% elif row.rank==2 %}&#129352;{% elif row.rank==3 %}&#129353;{% else %}{{ row.rank }}{% endif %}</td>
+                            <td>{{ row.username }}</td>
+                            <td style="text-align:right;font-weight:700;color:var(--acc);">{{ row.score_display }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="login-modal-overlay" id="login-modal" style="display:none;">
+    <div class="login-modal-box">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+            <h5 class="modal-title mb-0">提交分数</h5>
+            <button class="btn-close" onclick="closeLoginModal()" style="margin-left:auto;"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+            <p class="text-muted mb-3">登录后才能上传分数和参与排行榜！</p>
+            <p class="fw-bold mb-3" style="font-size:2rem;color:var(--acc);" id="modal-score">0</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="/login" class="btn btn-primary">登录</a>
+                <a href="/register" class="btn btn-outline-light">注册</a>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-sm btn-outline-secondary" onclick="closeLoginModal()">继续以游客身份游玩</button>
+        </div>
+    </div>
+</div>
+
+<div class="login-modal-overlay" id="uploading-overlay" style="display:none;">
+    <div class="login-modal-box">
+        <div class="modal-body text-center py-5">
+            <div class="spinner"></div>
+            <h5 class="fw-bold mb-2">上传数据中</h5>
+            <p class="text-muted mb-0">请勿刷新或退出页面...</p>
+            <p class="text-muted mb-0" style="font-size:.75rem;">页面将在上传完成后自动刷新</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const GAME_ID = "{{ game.get('game_id', '') }}";
+const USER_ID = {{ user.id if user else 'null' }};
+
+function showLoginModal(score) {
+    document.getElementById('modal-score').textContent = score;
+    document.getElementById('login-modal').style.display = 'flex';
+}
+function closeLoginModal() { document.getElementById('login-modal').style.display = 'none'; }
+function showUploading() { document.getElementById('uploading-overlay').style.display = 'flex'; }
+function hideUploading() { document.getElementById('uploading-overlay').style.display = 'none'; }
+
+async function _doSubmit(score, gameData) {
+    var resp = await fetch('/api/games/' + GAME_ID + '/score', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: score, game_data: gameData || null }),
+    });
+    if (!resp.ok) throw new Error('submit failed');
+    return await resp.json();
+}
+
+window.submitScore = async function(score, gameData) {
+    if (!USER_ID) { showLoginModal(score); return null; }
+    showUploading();
+    try {
+        var result = await _doSubmit(score, gameData);
+        location.reload();
+        return result;
+    } catch(e) {
+        hideUploading();
+        showLoginModal(score);
+        return null;
+    }
+};
+
+document.getElementById('login-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeLoginModal();
+});
+
+</script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--acc); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 1rem; }
+</style>
+<script src="/games/static/{{ game.get('game_id', '') }}/static/game.js?v={{ range(1,99999) | random }}"></script>
+{% endblock %}

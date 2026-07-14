@@ -1,0 +1,37 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="hero" style="padding:2rem 1rem 1.5rem;">
+    <h1>{{ config.get('site_title', '小游戏集群') }}</h1>
+    <p>{{ config.get('site_subtitle', '一个有趣的迷你游戏合集') }}</p>
+    {% if not user %}
+    <div class="mt-3">
+        <a href="/login" class="btn btn-primary btn-lg">登录</a>
+        <a href="/register" class="btn btn-outline-light btn-lg ms-2">注册</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="container pb-5" style="max-width: 1000px;">
+    <h6 class="fw-bold mb-3" style="color:var(--txt-3);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;">游戏列表</h6>
+    <div class="row g-3">
+        {% for game in games %}
+        <div class="col-md-4 col-sm-6">
+            <a href="/play/{{ game.get('game_id', '') }}" class="card h-100 game-card">
+                <div class="card-body text-center py-4">
+                    <div style="font-size:2rem;margin-bottom:.4rem;">&#127918;</div>
+                    <h5 class="card-title fw-bold" style="font-size:1rem;">{{ game.get('name', game.get('game_id', '')) }}</h5>
+                    <p class="card-text small" style="color:var(--txt-3);">{{ game.get('description', '') }}</p>
+                </div>
+                <div class="card-footer small text-center" style="color:var(--txt-3);font-size:.72rem;">
+                    v{{ game.get('version', '1.0') }} &middot; {{ game.get('author', '') }}
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+        {% if not games %}
+        <div class="col-12 text-center py-5"><p style="color:var(--txt-3);">暂无游戏</p>{% if user and user.is_admin %}<a href="/admin/games" class="btn btn-primary mt-2">上传游戏</a>{% endif %}</div>
+        {% endif %}
+    </div>
+    {% if user %}<div class="text-center mt-4"><small style="color:var(--txt-3);">你的总分 API：<code>{{ config.get('site_base_url', '') }}/api/ranking/total/{{ user.id }}</code></small></div>{% endif %}
+</div>
+{% endblock %}

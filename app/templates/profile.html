@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5" style="max-width: 500px;">
+    <h3 class="text-center fw-bold mb-4">个人空间</h3>
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">修改用户名</h6>
+            <form method="post">
+                <input type="hidden" name="action" value="username">
+                <div class="mb-2"><label class="form-label">新用户名</label>
+                <input type="text" name="username" class="form-control" value="{{ user.username }}" required minlength="3" maxlength="32"></div>
+                <button class="btn btn-primary btn-sm">保存</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">修改邮箱</h6>
+            <p style="font-size:.85rem;color:var(--txt-2);">当前邮箱：{{ user.email }}</p>
+            <form method="post">
+                <input type="hidden" name="action" value="change_email">
+                <div class="mb-2"><label class="form-label">新邮箱</label>
+                <input type="email" name="new_email" class="form-control" placeholder="你的新邮箱" required></div>
+                <button class="btn btn-primary btn-sm">发送验证邮件</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">修改密码</h6>
+            <form method="post">
+                <input type="hidden" name="action" value="password">
+                <div class="mb-2"><label class="form-label">旧密码</label><input type="password" name="old_password" class="form-control" required></div>
+                <div class="mb-2"><label class="form-label">新密码（至少 6 位）</label><input type="password" name="new_password" class="form-control" required minlength="6"></div>
+                <div class="mb-2"><label class="form-label">确认新密码</label><input type="password" name="new_password_confirm" class="form-control" required></div>
+                <button class="btn btn-primary btn-sm">修改密码</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

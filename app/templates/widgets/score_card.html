@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .widget { padding:18px 24px; border-radius:12px; text-align:center; min-width:220px; }
+    {% if theme == 'dark' %}
+    .widget { background:#16162a; color:#e8e8f0; border:1px solid rgba(255,255,255,.06); }
+    {% else %}
+    .widget { background:#fff; color:#1f2937; border:1px solid #e5e7eb; }
+    {% endif %}
+    .widget .title { font-size:11px; opacity:.4; margin-bottom:8px; letter-spacing:.05em; }
+    .widget .game { font-size:11px; opacity:.5; margin-bottom:6px; }
+    .widget .player { font-size:13px; opacity:.7; margin-bottom:6px; }
+    .widget .score { font-size:32px; font-weight:900; color:#f97316; }
+    .widget .rank { font-size:12px; opacity:.7; margin-top:4px; }
+    .widget .plays { font-size:11px; opacity:.4; margin-top:4px; }
+    a { text-decoration:none; color:inherit; }
+</style></head>
+<body>
+<div class="widget">
+    {% if site_base_url %}
+    <a href="{{ site_base_url }}" target="_blank"><div class="title">{{ site_title }}</div></a>
+    {% else %}
+    <div class="title">{{ site_title }}</div>
+    {% endif %}
+    <div class="game">{{ game_name }}</div>
+    <div class="player">{{ player.username }}</div>
+    <div class="score">{{ best_score }}</div>
+    {% if rank %}<div class="rank">排名 #{{ rank }} / {{ total_users }}</div>{% else %}<div class="rank">暂无成绩</div>{% endif %}
+    <div class="plays">已游玩 {{ total_plays }} 次</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-md-block sidebar py-3" style="min-height:calc(100vh - 56px);">
+            <h6 class="px-3 text-uppercase small mb-3" style="color:var(--txt-3);letter-spacing:.08em;">管理面板</h6>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" href="/admin">仪表盘</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/smtp">SMTP 设置</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/games">游戏管理</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/players">玩家管理</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/settings">站点设置</a></li>
+            </ul>
+        </nav>
+        <main class="col-md-10 ms-auto px-4 py-4">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

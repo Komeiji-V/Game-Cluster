@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .widget { padding:18px 22px; border-radius:12px; text-align:center; min-width:240px; max-width:340px; }
+    {% if theme == 'dark' %}
+    .widget { background:#16162a; color:#e8e8f0; border:1px solid rgba(255,255,255,.06); }
+    .widget .game-row { border-top-color:rgba(255,255,255,.06); }
+    {% else %}
+    .widget { background:#fff; color:#1f2937; border:1px solid #e5e7eb; }
+    .widget .game-row { border-top-color:#e5e7eb; }
+    {% endif %}
+    .widget .site { font-size:11px; opacity:.5; margin-bottom:4px; }
+    .widget .player { font-size:13px; opacity:.7; margin-bottom:4px; }
+    .widget .total { font-size:30px; font-weight:900; color:#f97316; margin-bottom:10px; }
+    .widget .game-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid; font-size:12px; }
+    .widget .game-name { text-align:left; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .widget .game-score { text-align:right; font-weight:700; margin-left:8px; white-space:nowrap; }
+    .widget .game-rank { text-align:right; font-size:10px; opacity:.5; margin-left:6px; white-space:nowrap; }
+    .widget .plays { font-size:10px; opacity:.4; margin-top:8px; }
+</style></head>
+<body>
+<div class="widget">
+    {% if site_base_url %}
+    <a href="{{ site_base_url }}" target="_blank"><div class="site">{{ site_name }}</div></a>
+    {% else %}
+    <div class="site">{{ site_name }}</div>
+    {% endif %}
+    <div class="player">{{ player.username }}</div>
+    <div class="total">{{ total_score_str }}</div>
+    {% for g in games %}
+    <div class="game-row">
+        <span class="game-name">{{ g.game_name }}</span>
+        <span class="game-score" style="color:{% if g.score_display == '功德圆满' %}#ffd700{% else %}#f97316{% endif %};">{{ g.score_display }}</span>
+        {% if g.rank %}<span class="game-rank">#{{ g.rank }}/{{ g.total_users }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="plays">共 {{ total_plays }} 次记录</div>
+</div>
+</body>
+</html>

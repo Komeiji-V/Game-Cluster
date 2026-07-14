@@ -1,0 +1,15 @@
+﻿#muyu-area { user-select: none; -webkit-user-select: none; }
+#muyu-svg { max-width: 100%; height: auto; }
+#muyu-area:hover #muyu-svg { filter: drop-shadow(0 0 20px rgba(249,115,22,.35)) drop-shadow(0 4px 12px rgba(0,0,0,.2)); }
+
+.float-text {
+    position: absolute; font-weight: 900; pointer-events: none; z-index: 5; font-size: 1.4rem;
+    animation: floatLddgo .7s ease-out forwards;
+}
+@keyframes floatLddgo {
+    0% { opacity: 1; transform: translateY(0) scale(.9); }
+    100% { opacity: 0; transform: translateY(-30px) scale(1.1); }
+}
+
+#muyu-hud { text-align: center; margin-top: 14px; font-size: 15px; color: var(--txt-2); }
+#muyu-hud b { color: var(--acc); }

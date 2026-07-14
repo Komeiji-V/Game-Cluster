@@ -1,0 +1,17 @@
+﻿{% extends "admin/base.html" %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4">SMTP 邮件设置</h4>
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+<form method="post">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">主机地址</label><input type="text" name="smtp_host" class="form-control" value="{{ config.get('smtp_host', '') }}"></div>
+        <div class="col-md-2"><label class="form-label">端口</label><input type="number" name="smtp_port" class="form-control" value="{{ config.get('smtp_port', '587') }}"></div>
+        <div class="col-md-4"><label class="form-label">TLS</label><select name="smtp_use_tls" class="form-select"><option value="true" {% if config.get('smtp_use_tls', 'true')=='true' %}selected{% endif %}>是</option><option value="false">否</option></select></div>
+        <div class="col-md-6"><label class="form-label">用户名</label><input type="text" name="smtp_username" class="form-control" value="{{ config.get('smtp_username', '') }}"></div>
+        <div class="col-md-6"><label class="form-label">密码</label><input type="password" name="smtp_password" class="form-control" value="{{ config.get('smtp_password', '') }}"></div>
+        <div class="col-md-6"><label class="form-label">发件邮箱</label><input type="email" name="smtp_from_email" class="form-control" value="{{ config.get('smtp_from_email', '') }}"></div>
+        <div class="col-md-6"><label class="form-label">发件人名称</label><input type="text" name="smtp_from_name" class="form-control" value="{{ config.get('smtp_from_name', '') }}"></div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">保存设置</button>
+</form>
+{% endblock %}

@@ -1,0 +1,13 @@
+﻿#game-canvas {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 8px;
+    background: #0a0a1a;
+}
+#game-hud {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 16px;
+}

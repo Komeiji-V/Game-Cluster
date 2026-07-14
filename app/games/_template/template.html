@@ -1,0 +1,10 @@
+﻿<div id="game-root" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:500px;width:100%;">
+    <p style="color:#aaa;font-size:18px;">Loading game...</p>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initGame === 'function') {
+        initGame('game-root');
+    }
+});
+</script>

@@ -1,0 +1,60 @@
+﻿{% set config = request.state.site_config if request.state.site_config else {} %}
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ config.get('site_favicon', '') }}">
+    <title>{{ config.get('site_title', '小游戏集群') }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    {% if config.get('site_primary_color') %}
+    <style>:root { --acc: {{ config['site_primary_color'] }}; --acc-glow: {{ config['site_primary_color'] }}22; }</style>
+    {% endif %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">{{ config.get('site_title', '小游戏集群') }}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/leaderboard">排行榜</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user %}
+                    <li class="nav-item"><a class="nav-link" href="/profile">{{ user.username }}</a></li>
+                    {% if user.is_admin %}
+                    <li class="nav-item"><a class="nav-link" href="/admin" style="color:var(--acc) !important;">管理</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="/logout">退出</a></li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="/login">登录</a></li>
+                    <li class="nav-item"><a class="btn btn-primary btn-sm ms-2" href="/register">注册</a></li>
+                    {% endif %}
+                    <li class="nav-item"><button class="theme-toggle" onclick="toggleTheme()" title="切换主题" id="themeBtn">&#9789;</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>&copy; 2026 {{ config.get('site_title', '小游戏集群') }}</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script>
+    function getTheme() { return localStorage.getItem('theme') || 'light'; }
+    function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); document.getElementById('themeBtn').innerHTML = t === 'dark' ? '&#9788;' : '&#9789;'; }
+    function toggleTheme() { var t = getTheme() === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', t); applyTheme(t); }
+    applyTheme(getTheme());
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

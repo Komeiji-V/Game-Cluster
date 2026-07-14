@@ -1,0 +1,120 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="container py-4" style="max-width:800px;">
+    <h3 class="text-center fw-bold mb-3">排行榜</h3>
+
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+        <form method="get" id="lb-form" class="d-flex flex-wrap gap-1 align-items-center" onsubmit="return validateLB()">
+            <select name="game_id" class="form-select w-auto" onchange="document.getElementById('search-input').value='';document.getElementById('rank-input').value='';this.form.submit()">
+                <option value="">全部游戏</option>
+                {% for g in games %}
+                <option value="{{ g.game_id }}" {% if current_game_id == g.game_id %}selected{% endif %}>{{ g.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="search-mode" class="form-select w-auto" onchange="switchMode()">
+                <option value="name" {% if (not rank_jump and not search) or search %}selected{% endif %}>按名字</option>
+                <option value="rank" {% if rank_jump %}selected{% endif %}>按排名</option>
+            </select>
+            <input type="text" name="search" id="search-input" class="form-control w-auto" style="max-width:160px;" placeholder="搜索玩家..." value="{{ search }}">
+            <input type="number" name="rank_jump" id="rank-input" class="form-control w-auto" style="max-width:100px;display:none;" min="1" step="1" placeholder="跳转排名" value="{{ rank_jump if rank_jump else '' }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">查询</button>
+            {% if search or rank_jump %}<a href="/leaderboard?game_id={{ current_game_id }}" class="btn btn-sm btn-ghost">清除</a>{% endif %}
+        </form>
+    </div>
+
+    {% if my_rank and not search %}
+    <div class="text-center mb-1" style="font-size:.82rem;color:var(--txt-3);">
+        我的排名：<b style="color:var(--acc);">#{{ my_rank }}</b> &nbsp;|&nbsp; 分数：<b>{{ my_score }}</b>
+        <a href="?game_id={{ current_game_id }}&rank_jump={{ my_rank }}" class="btn btn-sm btn-outline-secondary ms-2" style="font-size:.72rem;">查看周围排名</a>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead><tr><th class="ps-3" style="width:60px;">排名</th><th>玩家</th><th class="text-end pe-3">分数</th></tr></thead>
+                <tbody id="lb-body">
+                    {% for row in leaderboard %}
+                    <tr {% if row.get('is_me') %}id="my-row" style="background:var(--acc-glow);"{% endif %}>
+                        <td class="ps-3 fw-bold">
+                            {% if row.rank == 1 %}&#129351;{% elif row.rank == 2 %}&#129352;{% elif row.rank == 3 %}&#129353;{% else %}{{ row.rank }}{% endif %}
+                        </td>
+                        <td>{{ row.username }}{% if row.get('is_me') %} <span style="font-size:.7rem;color:var(--acc);">◀ 我</span>{% endif %}</td>
+                        <td class="text-end pe-3 fw-bold" style="color:var(--acc);">{{ row.score_display }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not leaderboard %}
+                    <tr><td colspan="3" class="text-center py-5" style="color:var(--txt-3);">暂无记录</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if not rank_jump %}
+    <div class="text-center mt-2" id="load-more-area">
+        <button class="btn btn-sm btn-outline-secondary" id="load-more-btn" onclick="loadMore()">加载更多</button>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})" style="position:fixed;bottom:20px;right:20px;z-index:999;" class="btn btn-primary btn-sm">↑ 返回顶部</button>
+<script>
+function switchMode() {
+    var mode = document.getElementById('search-mode').value;
+    document.getElementById('search-input').style.display = mode === 'name' ? '' : 'none';
+    document.getElementById('rank-input').style.display = mode === 'rank' ? '' : 'none';
+}
+function validateLB() {
+    var mode = document.getElementById('search-mode').value;
+    var v;
+    if (mode === 'name') v = document.getElementById('search-input').value.trim();
+    else v = document.getElementById('rank-input').value;
+    if (!v) { alert('请输入搜索内容'); return false; }
+    if (mode === 'rank' && (!/^\d+$/.test(v) || parseInt(v) < 1)) { alert('请输入有效的正整数排名'); return false; }
+    return true;
+}
+switchMode();
+(function() {
+    var my = document.getElementById('my-row');
+    if (my) my.scrollIntoView({ behavior: 'smooth', block: 'center' });
+})();
+var currentOffset = 50;
+var currentGameId = "{{ current_game_id }}";
+
+async function loadMore() {
+    var btn = document.getElementById('load-more-btn');
+    btn.disabled = true; btn.textContent = '加载中...';
+    var url = '/leaderboard?game_id=' + encodeURIComponent(currentGameId) + '&offset=' + currentOffset + '&format=json';
+    var resp = await fetch(url);
+    if (resp.ok) {
+        var data = await resp.json();
+        if (data.rows.length === 0) { document.getElementById('load-more-area').textContent = '已显示全部'; return; }
+        var tbody = document.getElementById('lb-body');
+        tbody.innerHTML += data.rows.map(function(r) {
+            var rankIcon = r.rank===1?'🥇':r.rank===2?'🥈':r.rank===3?'🥉':r.rank;
+            return '<tr'+ (r.is_me ? ' id="my-row" style="background:var(--acc-glow);"' : '') +'>'
+                + '<td class="ps-3 fw-bold">'+rankIcon+'</td>'
+                + '<td>'+r.username+(r.is_me?' <span style="font-size:.7rem;color:var(--acc);">◀ 我</span>':'')+'</td>'
+                + '<td class="text-end pe-3 fw-bold" style="color:var(--acc);">'+r.score_display+'</td></tr>';
+        }).join('');
+        currentOffset += 50;
+        btn.disabled = false; btn.textContent = '加载更多';
+    } else {
+        btn.textContent = '加载失败';
+    }
+}
+(function connectWS() {
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var ws;
+    try { ws = new WebSocket(proto + '//' + location.host + '/ws/leaderboard'); }
+    catch(e) { setTimeout(connectWS, 5000); return; }
+    ws.onmessage = function(e) { var m = JSON.parse(e.data); if (m.type === 'update') { setTimeout(function() { location.reload(); }, 2000); } };
+    ws.onclose = function() { setTimeout(connectWS, 5000); };
+    ws.onerror = function() { ws.close(); };
+})();
+</script>
+{% endblock %}
