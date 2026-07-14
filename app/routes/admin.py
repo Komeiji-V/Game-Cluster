@@ -361,7 +361,7 @@ async def admin_settings_save(
         "site_base_url": site_base_url,
     }
     async with AsyncSessionLocal() as db:
-            for key, value in data.items():
+        for key, value in data.items():
             existing = (await db.execute(
                 select(SiteSettings).where(SiteSettings.setting_key == key)
             )).scalars().first()
