@@ -110,17 +110,32 @@ async def admin_smtp_save(
 
 @router.post("/smtp/test")
 async def admin_smtp_test(request: Request, admin: User = Depends(require_admin)):
+    import asyncio, smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from email.utils import formataddr
+
     form = await request.form()
-    config = {
-        "host": form.get("smtp_host", ""),
-        "port": int(form.get("smtp_port", "587")),
-        "username": form.get("smtp_username", ""),
-        "password": form.get("smtp_password", ""),
-        "from_email": form.get("smtp_from_email", ""),
-        "from_name": form.get("smtp_from_name", "小游戏集群"),
-        "use_tls": form.get("smtp_use_tls", "true").lower() == "true",
-    }
     to_email = form.get("test_to_email", "").strip()
+
+    config = {}
+    async with AsyncSessionLocal() as db:
+        keys = SiteSettings.SMTP_KEYS
+        result = await db.execute(
+            select(SiteSettings).where(SiteSettings.setting_key.in_(keys))
+        )
+        cfg = {}
+        for row in result.scalars().all():
+            cfg[row.setting_key] = row.value
+        config = {
+            "host": cfg.get("smtp_host", ""),
+            "port": int(cfg.get("smtp_port", "587")),
+            "username": cfg.get("smtp_username", ""),
+            "password": cfg.get("smtp_password", ""),
+            "from_email": cfg.get("smtp_from_email", ""),
+            "from_name": cfg.get("smtp_from_name", "小游戏集群"),
+            "use_tls": cfg.get("smtp_use_tls", "true").lower() == "true",
+        }
 
     if not config["host"]:
         return {"success": False, "error": "SMTP 主机地址未配置"}
