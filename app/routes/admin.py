@@ -93,7 +93,7 @@ async def admin_smtp_save(
         for key, value in data.items():
             existing = (await db.execute(
                 select(SiteSettings).where(SiteSettings.setting_key == key)
-            )).scalar_one_or_none()
+            )).scalars().first()
             if existing:
                 existing.value = value
             else:
@@ -311,6 +311,24 @@ async def admin_players_edit(
     return RedirectResponse("/admin/players", status_code=303)
 
 
+@router.post("/players/{player_id}/delete")
+async def admin_players_delete(
+    player_id: int,
+    admin: User = Depends(require_admin),
+):
+    if player_id == admin.id:
+        raise HTTPException(status_code=400, detail="不能删除自己")
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(delete(Score).where(Score.user_id == player_id))
+        user = (await db.execute(select(User).where(User.id == player_id))).scalars().first()
+        if user:
+            await db.delete(user)
+            await db.commit()
+
+    return RedirectResponse("/admin/players", status_code=303)
+
+
 @router.get("/settings", response_class=HTMLResponse)
 async def admin_settings(request: Request, admin: User = Depends(require_admin)):
     from app.main import templates
@@ -343,10 +361,10 @@ async def admin_settings_save(
         "site_base_url": site_base_url,
     }
     async with AsyncSessionLocal() as db:
-        for key, value in data.items():
+            for key, value in data.items():
             existing = (await db.execute(
                 select(SiteSettings).where(SiteSettings.setting_key == key)
-            )).scalar_one_or_none()
+            )).scalars().first()
             if existing:
                 existing.value = value
             else:
@@ -377,7 +395,7 @@ async def admin_settings_upload(
     async with AsyncSessionLocal() as db:
         existing = (await db.execute(
             select(SiteSettings).where(SiteSettings.setting_key == key)
-        )).scalar_one_or_none()
+        )).scalars().first()
         if existing:
             existing.value = url
         else:

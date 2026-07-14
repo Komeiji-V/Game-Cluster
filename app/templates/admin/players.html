@@ -16,7 +16,10 @@
                     <td>{{ '是' if p.is_verified else '否' }}</td>
                     <td>{{ '是' if p.is_admin else '否' }}</td>
                     <td>{{ '是' if p.is_banned else '否' }}</td>
-                    <td><button class="btn btn-sm btn-outline-secondary" data-id="{{ p.id }}" data-username="{{ p.username }}" data-email="{{ p.email }}" data-banned="{{ '1' if p.is_banned else '0' }}" data-admin="{{ '1' if p.is_admin else '0' }}" onclick="var d=this.dataset;editPlayer(d.id,d.username,d.email,d.banned,d.admin)" data-bs-toggle="modal" data-bs-target="#editModal">编辑</button></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" data-id="{{ p.id }}" data-username="{{ p.username }}" data-email="{{ p.email }}" data-banned="{{ '1' if p.is_banned else '0' }}" data-admin="{{ '1' if p.is_admin else '0' }}" onclick="var d=this.dataset;editPlayer(d.id,d.username,d.email,d.banned,d.admin)" data-bs-toggle="modal" data-bs-target="#editModal">编辑</button>
+                        <form action="/admin/players/{{ p.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('确定删除用户 {{ p.username }} 吗？此操作不可恢复！')"><button class="btn btn-sm btn-outline-danger">删除</button></form>
+                    </td>
                 </tr>
                 {% endfor %}
                 {% if not players %}
