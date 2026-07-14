@@ -40,6 +40,7 @@ async def scan_game_modules():
                 version=manifest.get("version", "1.0"),
                 author=manifest.get("author", "unknown"),
                 enabled=True,
+                counts_toward_total=manifest.get("counts_toward_total", True),
             )
             db.add(module)
             existing_ids.add(game_id)

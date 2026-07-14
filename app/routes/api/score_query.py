@@ -5,7 +5,7 @@ from sqlalchemy import select, func, desc
 from app.config import AsyncSessionLocal
 from app.models.score import Score
 from app.models.user import User
-from app.models.site_settings import SiteSettings
+from app.models.site_settings import SiteSettings, GameModule
 
 router = APIRouter()
 
@@ -163,6 +163,10 @@ async def _total_ranking_data(user_id: int) -> dict:
         if not user or user.is_banned:
             return {"error": "用户不存在"}
 
+        counting_ids = (await db.execute(
+            select(GameModule.game_id).where(GameModule.counts_toward_total == True)
+        )).scalars().all()
+
         subq = (
             select(
                 Score.user_id,
@@ -205,7 +209,7 @@ async def _total_ranking_data(user_id: int) -> dict:
                 "plays": row.plays,
                 "last_played": str(row.last_played) if row.last_played else None,
             })
-            if row.game_id != "muyu":
+            if row.game_id in counting_ids:
                 total_score += row.best_score
 
         for g in games:

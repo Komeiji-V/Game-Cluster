@@ -14,7 +14,7 @@
 <div class="card">
     <div class="card-body p-0">
         <table class="table mb-0">
-            <thead><tr><th>游戏 ID</th><th>名称</th><th>版本</th><th>作者</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>游戏 ID</th><th>名称</th><th>版本</th><th>作者</th><th>状态</th><th>计入总分</th><th>操作</th></tr></thead>
             <tbody>
                 {% for m in modules %}
                 <tr>
@@ -23,6 +23,15 @@
                     <td>v{{ m.version }}</td>
                     <td>{{ m.author }}</td>
                     <td>{% if m.enabled %}<span class="badge bg-success">已启用</span>{% else %}<span class="badge bg-secondary">已禁用</span>{% endif %}</td>
+                    <td>
+                        <form action="/admin/games/{{ m.game_id }}/toggle-count" method="post" class="d-inline">
+                            {% if m.counts_toward_total %}
+                            <button class="btn btn-sm btn-outline-secondary">是</button>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" style="opacity:.5;">否</button>
+                            {% endif %}
+                        </form>
+                    </td>
                     <td>
                         <form action="/admin/games/{{ m.game_id }}/toggle" method="post" class="d-inline">
                             <button class="btn btn-sm btn-outline-secondary">{{ '禁用' if m.enabled else '启用' }}</button>

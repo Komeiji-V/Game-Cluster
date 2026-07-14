@@ -28,4 +28,5 @@ class GameModule(Base):
     version = Column(String(16), nullable=False, default="1.0")
     author = Column(String(64), nullable=False, default="unknown")
     enabled = Column(Boolean, default=True)
+    counts_toward_total = Column(Boolean, default=True)
     installed_at = Column(DateTime(timezone=True), server_default=func.now())

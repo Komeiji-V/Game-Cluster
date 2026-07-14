@@ -3,5 +3,6 @@
     "name": "经典贪吃蛇",
     "description": "操控小蛇吃掉食物不断成长，碰到墙壁会从另一侧穿出，小心别咬到自己！",
     "version": "1.0",
-    "author": "Game Cluster"
+    "author": "Game Cluster",
+    "counts_toward_total": true
 }

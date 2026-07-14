@@ -260,6 +260,17 @@ async def admin_games_toggle(game_id: str, admin: User = Depends(require_admin))
     return RedirectResponse("/admin/games", status_code=303)
 
 
+@router.post("/games/{game_id}/toggle-count")
+async def admin_games_toggle_count(game_id: str, admin: User = Depends(require_admin)):
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(GameModule).where(GameModule.game_id == game_id))
+        module = result.scalar_one_or_none()
+        if module:
+            module.counts_toward_total = not module.counts_toward_total
+            await db.commit()
+    return RedirectResponse("/admin/games", status_code=303)
+
+
 @router.post("/games/{game_id}/delete")
 async def admin_games_delete(game_id: str, admin: User = Depends(require_admin)):
     async with AsyncSessionLocal() as db:

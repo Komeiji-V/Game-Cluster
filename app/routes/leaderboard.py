@@ -115,45 +115,65 @@ async def leaderboard_page(request: Request, game_id: str = None, search: str = 
                     my_rank = better + 1; my_score = found
 
         else:
-            subq2 = (select(Score.user_id, func.max(Score.score).label("max_score"))
-                     .where(Score.game_id != "muyu").group_by(Score.user_id).subquery())
+            game_ids = (await db.execute(
+                select(GameModule.game_id).where(
+                    GameModule.counts_toward_total == True,
+                    GameModule.enabled == True
+                )
+            )).scalars().all()
 
-            if search:
-                found = (await db.execute(
-                    select(subq2.c.max_score, subq2.c.user_id).join(User, subq2.c.user_id == User.id)
-                    .where(User.is_banned == False, User.username.ilike(f"%{search}%"))
-                    .order_by(desc(subq2.c.max_score)).limit(1)
-                )).first()
-                if found:
-                    better = (await db.execute(
-                        select(func.count()).select_from(subq2).where(subq2.c.max_score > found.max_score)
-                    )).scalar()
-                    rj = better + 1; search = ""
-
-            if rj > 0:
-                q = select(subq2.c.user_id, subq2.c.max_score, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.max_score)).offset(max(0, rj - 6)).limit(11)
-            elif off > 0:
-                q = select(subq2.c.user_id, subq2.c.max_score, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.max_score)).offset(off).limit(50)
+            if not game_ids:
+                leaderboard = []
+                my_rank = None; my_score = None
             else:
-                q = select(subq2.c.user_id, subq2.c.max_score, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.max_score)).limit(50)
-            scores = await db.execute(q)
-            leaderboard = []
-            for i, row in enumerate(scores.all()):
-                r = (rj > 0 and max(0, rj - 6) + i + 1) or (off + i + 1)
-                entry = {"rank": r, "username": row.username, "score_display": str(row.max_score), "score": row.max_score}
-                if user and row.user_id == user.id:
-                    entry["is_me"] = True; my_rank = r; my_score = row.max_score
-                leaderboard.append(entry)
+                per_game = (
+                    select(Score.user_id, func.max(Score.score).label("best"))
+                    .where(Score.game_id.in_(game_ids))
+                    .group_by(Score.user_id)
+                    .subquery()
+                )
+                subq2 = (
+                    select(per_game.c.user_id, func.sum(per_game.c.best).label("total"))
+                    .group_by(per_game.c.user_id)
+                    .subquery()
+                )
 
-            if user and my_rank is None and not rj and not off and not search:
-                found = (await db.execute(
-                    select(subq2.c.max_score).where(subq2.c.user_id == user.id)
-                )).scalar_one_or_none()
-                if found:
-                    better = (await db.execute(
-                        select(func.count()).select_from(subq2).where(subq2.c.max_score > found)
-                    )).scalar()
-                    my_rank = better + 1; my_score = found
+                if search:
+                    found = (await db.execute(
+                        select(subq2.c.total, subq2.c.user_id).join(User, subq2.c.user_id == User.id)
+                        .where(User.is_banned == False, User.username.ilike(f"%{search}%"))
+                        .order_by(desc(subq2.c.total)).limit(1)
+                    )).first()
+                    if found:
+                        better = (await db.execute(
+                            select(func.count()).select_from(subq2).where(subq2.c.total > found.total)
+                        )).scalar()
+                        rj = better + 1; search = ""
+
+                if rj > 0:
+                    q = select(subq2.c.user_id, subq2.c.total, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.total)).offset(max(0, rj - 6)).limit(11)
+                elif off > 0:
+                    q = select(subq2.c.user_id, subq2.c.total, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.total)).offset(off).limit(50)
+                else:
+                    q = select(subq2.c.user_id, subq2.c.total, User.username).join(User, subq2.c.user_id == User.id).where(User.is_banned == False).order_by(desc(subq2.c.total)).limit(50)
+                scores = await db.execute(q)
+                leaderboard = []
+                for i, row in enumerate(scores.all()):
+                    r = (rj > 0 and max(0, rj - 6) + i + 1) or (off + i + 1)
+                    entry = {"rank": r, "username": row.username, "score_display": str(row.total), "score": row.total}
+                    if user and row.user_id == user.id:
+                        entry["is_me"] = True; my_rank = r; my_score = row.total
+                    leaderboard.append(entry)
+
+                if user and my_rank is None and not rj and not off and not search:
+                    found = (await db.execute(
+                        select(subq2.c.total).where(subq2.c.user_id == user.id)
+                    )).scalar_one_or_none()
+                    if found:
+                        better = (await db.execute(
+                            select(func.count()).select_from(subq2).where(subq2.c.total > found)
+                        )).scalar()
+                        my_rank = better + 1; my_score = found
 
     if format == "json":
         return JSONResponse({"rows": leaderboard})

@@ -30,7 +30,8 @@ your-game/
     "name": "你的游戏名称",
     "description": "游戏的简短描述，将显示在游戏大厅卡片上",
     "version": "1.0",
-    "author": "你的名字"
+    "author": "你的名字",
+    "counts_toward_total": true
 }
 ```
 
@@ -41,6 +42,7 @@ your-game/
 | `description` | 否 | 简介文字，留空则显示空 |
 | `version` | 否 | 版本号，默认为 `1.0` |
 | `author` | 否 | 作者名，默认为 `unknown` |
+| `counts_toward_total` | 否 | 是否计入总排行榜总分，默认 `true`。休闲/刷分类游戏建议设为 `false` |
 
 ---
 
