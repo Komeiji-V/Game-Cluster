@@ -127,9 +127,9 @@ async def leaderboard_page(request: Request, game_id: str = None, search: str = 
                 my_rank = None; my_score = None
             else:
                 per_game = (
-                    select(Score.user_id, func.max(Score.score).label("best"))
+                    select(Score.user_id, Score.game_id, func.max(Score.score).label("best"))
                     .where(Score.game_id.in_(game_ids))
-                    .group_by(Score.user_id)
+                    .group_by(Score.user_id, Score.game_id)
                     .subquery()
                 )
                 subq2 = (
