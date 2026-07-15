@@ -15,7 +15,10 @@
 - **游客模式** — 未登录也能玩，提交分数时提示登录
 - **日夜间模式** — 页面全局切换，自动持久化
 - **后台管理** — SMTP 设置、游戏上传/删除、用户管理、站点标题/图标/主题色
-- **分数 API** — 供 iframe 嵌入外部网站的个人分数卡片
+- **排行榜分层** — 游戏可独立排行或计入总分（`counts_toward_total`），防止刷分游戏霸榜
+- **分数 API** — 供 iframe 嵌入外部网站的个人分数卡片，支持 `?w=300&h=400` 参数自定义尺寸
+- **SMTP 测试** — 管理面板内置发送测试邮件的功能
+- **安全加固** — Cookie `secure`/`sameSite` 标志、路径穿越防护、XSS 修复、交互式管理员密码输入
 
 ---
 
@@ -122,12 +125,25 @@ game-cluster/
 
 ---
 
+## Widget API
+
+供论坛等外部站点通过 iframe 嵌入个人分数卡片。卡片标题在设置站点域名后可点击直达主页。
+
+| API | 说明 | 参数 |
+|-----|------|------|
+| `GET /api/widget/{game_id}/{user_id}` | 某游戏分数卡片 | `?theme=dark` `?w=300` `?h=400` |
+| `GET /api/widget/{game_id}/{user_id}/json` | 同上，JSON 格式 | — |
+| `GET /api/ranking/total/{user_id}` | 总分卡片（含各游戏明细） | `?theme=dark` `?w=280` `?h=500` |
+| `GET /api/ranking/total/{user_id}/json` | 同上，JSON 格式 | — |
+
+---
+
 ## 开发游戏
 
 详细指南：[docs/GAME_DEV_GUIDE.md](docs/GAME_DEV_GUIDE.md)
 
 1. 复制 `app/games/_template/` → 重命名为你的游戏 ID
-2. 编辑 `manifest.json`（游戏名称、描述）
+2. 编辑 `manifest.json`（游戏名称、描述、`counts_toward_total` 是否计入总排行榜）
 3. 在 `static/game.js` 中实现游戏逻辑
 4. 游戏结束时调用 `window.submitScore(score, gameData)`
 5. 打包为 `.zip` → 管理员后台 `/admin/games` 上传

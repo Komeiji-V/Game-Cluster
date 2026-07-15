@@ -62,6 +62,8 @@ async def score_widget(request: Request, game_id: str, user_id: int):
 
         theme = request.query_params.get("theme", "light")
         compact = request.query_params.get("compact", "0")
+        w = request.query_params.get("w", "")
+        h = request.query_params.get("h", "")
 
     return templates.TemplateResponse("widgets/score_card.html", {
         "request": request,
@@ -76,6 +78,8 @@ async def score_widget(request: Request, game_id: str, user_id: int):
         "total_plays": total_plays,
         "theme": theme,
         "compact": compact == "1",
+        "w": w,
+        "h": h,
     })
 
 
@@ -129,6 +133,8 @@ async def total_ranking_html(request: Request, user_id: int):
         return HTMLResponse("<div style='padding:10px;color:#999;font-size:12px;'>未找到用户</div>")
 
     theme = request.query_params.get("theme", "light")
+    w = request.query_params.get("w", "")
+    h = request.query_params.get("h", "")
     total_plays = sum(g.get("plays", 0) for g in data["games"])
     total_str = f"{data['total_score']:,}"
 
@@ -149,6 +155,7 @@ async def total_ranking_html(request: Request, user_id: int):
         "request": request, "player": {"username": data["username"]},
         "site_name": site_name, "site_base_url": site_base_url, "games": data["games"],
         "total_score_str": total_str, "total_plays": total_plays, "theme": theme,
+        "w": w, "h": h,
     })
 
 
