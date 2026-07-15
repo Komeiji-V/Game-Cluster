@@ -202,8 +202,23 @@ async def submit_score(request: Request, game_id: str):
                 score = Score(user_id=user.id, game_id=game_id, score=score_value, game_data=game_data)
                 db.add(score)
         else:
-            score = Score(user_id=user.id, game_id=game_id, score=score_value, game_data=game_data)
-            db.add(score)
+            existing = (await db.execute(
+                select(Score).where(Score.user_id == user.id, Score.game_id == game_id)
+                .order_by(desc(Score.score)).limit(1)
+            )).scalars().first()
+            if existing:
+                old_gd = existing.game_data or {}
+                game_data = game_data or {}
+                game_data["plays"] = old_gd.get("plays", 0) + 1
+                if score_value > existing.score:
+                    existing.score = score_value
+                existing.game_data = game_data
+                score = existing
+            else:
+                game_data = game_data or {}
+                game_data["plays"] = 1
+                score = Score(user_id=user.id, game_id=game_id, score=score_value, game_data=game_data)
+                db.add(score)
 
         await db.commit()
         await db.refresh(score)

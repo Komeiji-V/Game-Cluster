@@ -24,10 +24,10 @@ async def score_widget(request: Request, game_id: str, user_id: int):
             .order_by(desc(Score.score)).limit(1)
         )).scalar_one_or_none()
 
-        total_plays = (await db.execute(
-            select(func.count()).select_from(Score)
-            .where(Score.user_id == user_id, Score.game_id == game_id)
-        )).scalar()
+        total_plays = 0
+        if best:
+            gd = best.game_data or {}
+            total_plays = gd.get("plays", 0)
 
         if best:
             better_count = (await db.execute(
@@ -95,10 +95,10 @@ async def score_widget_json(request: Request, game_id: str, user_id: int):
             .order_by(desc(Score.score)).limit(1)
         )).scalar_one_or_none()
 
-        total_plays = (await db.execute(
-            select(func.count()).select_from(Score)
-            .where(Score.user_id == user_id, Score.game_id == game_id)
-        )).scalar()
+        total_plays = 0
+        if best:
+            gd = best.game_data or {}
+            total_plays = gd.get("plays", 0)
 
         if best:
             better_count = (await db.execute(
@@ -179,7 +179,6 @@ async def _total_ranking_data(user_id: int) -> dict:
                 Score.user_id,
                 Score.game_id,
                 func.max(Score.score).label("best_score"),
-                func.count().label("plays"),
                 func.max(Score.played_at).label("last_played"),
             )
             .where(Score.user_id == user_id)
@@ -191,6 +190,15 @@ async def _total_ranking_data(user_id: int) -> dict:
         games = []
         total_score = 0
         for row in rows:
+            plays = 0
+            best_rec = (await db.execute(
+                select(Score).where(Score.user_id == user_id, Score.game_id == row.game_id)
+                .order_by(desc(Score.score)).limit(1)
+            )).scalars().first()
+            if best_rec:
+                gd = best_rec.game_data or {}
+                plays = gd.get("plays", 0)
+
             better = (await db.execute(
                 select(func.count()).select_from(Score)
                 .where(Score.game_id == row.game_id, Score.score > row.best_score)
@@ -213,7 +221,7 @@ async def _total_ranking_data(user_id: int) -> dict:
                 "score_display": str(row.best_score),
                 "rank": better + 1,
                 "total_users": total,
-                "plays": row.plays,
+                "plays": plays,
                 "last_played": str(row.last_played) if row.last_played else None,
             })
             if row.game_id in counting_ids:
